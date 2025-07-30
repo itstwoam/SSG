@@ -96,3 +96,14 @@ def split_nodes_worker(tt, text):
         result.append(TextNode(work, TextType.TEXT))
 
     return result
+
+def text_to_textnodes(text):
+    final = [TextNode(text, TextType.TEXT)]
+    #split_nodes_delimiter(old_nodes, delimiter, text_type):
+    final = split_nodes_delimiter(final, "**", TextType.BOLD)
+    print(final)
+    final = split_nodes_delimiter(final, '_', TextType.ITALIC)
+    final = split_nodes_delimiter(final, '\'', TextType.CODE)
+    final = split_nodes_image(final)
+    final = split_nodes_links(final)
+    return final
