@@ -1,0 +1,7 @@
+var = " How will this split?".split(" ", 1)
+print(var)
+print(len(var[0]))
+print([''])
+print([' '])
+print(len(' '))
+print(len(''))
