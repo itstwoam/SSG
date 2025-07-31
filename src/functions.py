@@ -1,5 +1,6 @@
 from textnode import TextType, TextNode
 from htmlnode import LeafNode
+from enums import TextType
 import re
 
 def text_node_to_html_node(text_node):
@@ -56,14 +57,20 @@ def extract_markdown_links(text):
 def split_nodes_image(old_nodes):
     final = []
     for n in old_nodes:
-        final.extend(split_nodes_worker(TextType.IMAGE, n.text))
+        if n.text_type == TextType.TEXT:
+            final.extend(split_nodes_worker(TextType.IMAGE, n.text))
+        else:
+            final.append(n)
     return final
 
 
 def split_nodes_links(old_nodes):
     final = []
     for n in old_nodes:
-        final.extend(split_nodes_worker(TextType.LINK, n.text))
+        if n.text_type == TextType.TEXT:
+            final.extend(split_nodes_worker(TextType.LINK, n.text))
+        else:
+            final.append(n)
     return final
 
 
@@ -101,9 +108,17 @@ def text_to_textnodes(text):
     final = [TextNode(text, TextType.TEXT)]
     #split_nodes_delimiter(old_nodes, delimiter, text_type):
     final = split_nodes_delimiter(final, "**", TextType.BOLD)
-    print(final)
     final = split_nodes_delimiter(final, '_', TextType.ITALIC)
     final = split_nodes_delimiter(final, '\'', TextType.CODE)
     final = split_nodes_image(final)
     final = split_nodes_links(final)
+    return final
+
+def markdown_to_block(markdown):
+    work = markdown.split("\n\n")
+    final = []
+    for t in work:
+        t = t.strip()
+        if len(t) > 0:
+            final.append(t.strip())
     return final
