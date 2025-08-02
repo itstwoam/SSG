@@ -8,8 +8,8 @@ class TestParallelFormatting(unittest.TestCase):
             "Bold only": "**bold**",
             "Bold then Italic": "**bold** and _italic_",
             "Italic then Bold": "_italic_ then **bold**",
-            "Code + Bold + Italic": "'code', **bold**, _italic_",
-            "All separate": "**bold** _italic_ 'code' [link](url) ![alt](img.jpg)"
+            "Code + Bold + Italic": "`code`, **bold**, _italic_",
+            "All separate": "**bold** _italic_ `code` [link](url) ![alt](img.jpg)"
         }
 
         expected = {

@@ -41,6 +41,17 @@ class LeafNode(HTMLNode):
         return f'<{self.tag}>{self.value}</{self.tag}>'
 
 class ParentNode(HTMLNode):
+    """
+         Parent node that must contain at least one child
+
+         Functions:
+         to_html() - prints out an html version of it's contents
+
+         Fields:
+         tag: symbol used for the tag <tag>
+         children: List of child nodes, can't be empty
+         props: Props for the html tag
+    """
     def __init__(self, tag, children, props=None):
         super().__init__(tag, None, children, props)
 
@@ -58,15 +69,24 @@ class ParentNode(HTMLNode):
             return final
 
 def text_node_to_html_node(text_node):
+    """
+        This function returns an html leaf node from the given text node.
+
+        Parameters:
+        text_node: a text_node to convert
+
+        Returns:
+        LeafNode
+    """
     match text_node.text_type:
         case TextType.TEXT:
-            return LeafNode(text_node.text, None, None)
+            return LeafNode(text_node.text, None)
         case TextType.BOLD:
-            return LeafNode(text_node.text, "b", None)
+            return LeafNode(text_node.text, "b")
         case TextType.ITALIC:
-            return LeafNode(text_node.text, "i", None)
+            return LeafNode(text_node.text, "i")
         case TextType.CODE:
-            return LeafNode(text_node.text, "code", None)
+            return LeafNode(text_node.text, "code")
         case TextType.LINK:
             return LeafNode(text_node.text, "a", text_node.props)
         case TextType.IMAGE:

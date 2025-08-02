@@ -1,5 +1,5 @@
 from textnode import TextType, TextNode
-from htmlnode import LeafNode
+from htmlnode import LeafNode, text_node_to_html_node
 from enums import TextType, BlockType
 import re
 
@@ -183,19 +183,24 @@ def text_to_textnodes(text):
     Returns:
     List of textnodes of different types
     """
-    #print("In text_to_textnodes")
+    #print(f"In text_to_textnodes with text=: {text}")
     final = [TextNode(text, TextType.TEXT)]
     #split_nodes_delimiter(old_nodes, delimiter, text_type):
     #print("Going to split_nodes_delimiter for BOLD")
     final = split_nodes_delimiter(final, "**", TextType.BOLD)
+    #print(f'final after bold delimiter: {final}')
     #print("Going to split_nodes_delimiter for ITALIC")
     final = split_nodes_delimiter(final, '_', TextType.ITALIC)
+    #print(f'final after italic delimiter: {final}')
     #print("Going to split_nodes_delimiter for CODE")
     final = split_nodes_delimiter(final, '`', TextType.CODE)
+    #print(f'final after code delimiter: {final}')
     #print("Going to split_nodes_image")
     final = split_nodes_image(final)
+    #print(f'final after image delimiter: {final}')
     #print("Going to split_nodes_links")
     final = split_nodes_links(final)
+    #print(f'final after links delimiter: {final}')
     #print("Returning from text_to_textnodes")
     return final
 
@@ -237,14 +242,14 @@ def block_to_block_type(block):
         return BlockType.CODE
     lines = block.split("\n")
     if len(lines) > 0:
-        arrow = True
+        quote = True
         count = 1
         chaos = True
         order = True
         for l in lines:
-            if arrow:
+            if quote:
                 if l[0] != ">":
-                    arrow = False
+                    quote = False
             if chaos:
                 if l.find("- ") != 0:
                     chaos = False
@@ -255,10 +260,7 @@ def block_to_block_type(block):
                     # print(int(l.split(".", 1)[0]))
                     order = False
             count += 1
-        if not arrow and not chaos and not order:
-            #print("Returning from block_to_bloc_type")
-            return BlockType.PARAGRAPH
-        if arrow:
+        if quote:
             #print("Returning from block_to_bloc_type")
             return BlockType.QUOTE
         if chaos:
@@ -269,20 +271,143 @@ def block_to_block_type(block):
             return BlockType.ORDERED
         #should not be here.  Quick kernel panic!
         #print("Throwing exception in block_to_block_type")
-        raise Exception("no block type found!")
+        return BlockType.PARAGRAPH
+
+def block_to_html_node(block, block_type):
+    """
+    Converts a block of markdown to an htmlnode
+
+    Parameters:
+    block (string) Block of text to convert to htmlnode
+    block_type (BlockType) defines the block type
+
+    Returns:
+    htmlnode consisting of the nodes required for the block.
+    """
+    final = []
+    match block_type:
+        case BlockType.PARAGRAPH:
+            tag = "p"
+            #create the children nodes first
+            children = text_to_textnodes(block)
+            #create the parent node
+    #def __init__(self, tag, children, props=None):
+            pnode = ParentNode("p", children)
+
+
+
+
+
+
+
+
 
 
 def markdown_to_html_node(markdown):
+    """
+    Converts a markdown document to a single htmlnode containing all the individual html nodes
+    described by the markdown document
+
+    Parameters:
+    markdown (string) document containing lines of markdown
+
+    Return:
+    html node
+    """
     #print("In markdown")
     final = []
     #print("Going to markdown_to_block")
-    work = markdown_to_block(markdown)
-    #print(work)
-    for l in work:
-        #print(l)
+    blocks = markdown_to_block(markdown)
+    #print(block)
+    for b in blocks:
+        #print(b)
         #print("Going to text_to_textnodes")
-        final = text_to_textnodes(l)
-        #print(l)
-    #print(work)
+        # Figure out what each block type is
+        b_type = block_to_block_type(b)
+        # Call function to deal with the type
+        match b_type:
+            case: BlockType.PARAGRAPH:
+                final.append(paragraph_from_block(b))
+            case: BlockType.CODE:
+                final.append(code_from_block(b))
+            case: BlockType.QUOTE:
+                final.append(quote_from_block(b))
+            case: BlockType.HEADING:
+                final.append(heading_from_block(b))
+            case: BlockType.ORDERED:
+                final.append(list_from_block(b))
+            case: BlockType.UNORDERED:
+                final.append(olist_from_block(b))
+            case: _:
+                raise Exception("Invalid block type in markdown_to_html_node")
+        # Return an htmlnode based on block type
+    return ParentNode("div", final, None)
+        # Add this htmlnode to final
+        current = text_to_textnodes(b)
+    #print(block)
     #print("Returning from block_to_bloc_type")
     return final
+
+def get_children(text):
+    final = []
+    t_nodes = text_to_textnodes(text)
+    for n in t_nodes:
+        h_node = text_node_to_html_node(n)
+        final.append(h_node)
+    return final
+
+def paragraph_from_block(block):
+    lines = block.split("\n")
+    new_lines = " ".join(lines)
+    children = get_children(new_lines)
+    return ParentNode("p", children)
+
+
+def heading_from_block(block):
+   level = 0
+    for l in block:
+        if l == "#":
+            level += 1
+        else:
+            break
+    if level + 1 >= len(block):
+        raise Exception(f"invalid heading level: {level}")
+    text = block[level+ 1 :]
+    children = get_children(text)
+    return ParentNode(f"h{level}", children)
+
+def code_from_block(block):
+    text = block[4:-3]
+    t_node = TextNode(text, TextType.TEXT)
+    children = text_node_to_html_node(t_node)
+    parent = ParentNode("code", [children])
+    return ParentNode("pre", [parent])
+
+def quote_from_block(block):
+    final = []
+    lines = block.split("\n")
+    for l in lines:
+        final.append(l.lstrip(">").strip())
+    t_nodes = " ".join(final)
+    children = get_children(t_nodes)
+    return ParentNode("blockquote", children)
+
+
+def list_from_block(block):
+    final = []
+    lines = block.split("\n")
+    for l in lines:
+        text = l[2:]
+        children = get_children(text)
+        final.append(ParentNode("li", children))
+    return ParentNode("ul", final)
+
+
+def olist_from_block(block):
+    final = []
+    lines = block.split("\n")
+    for l in lines:
+        text = l[l.find(" ")+1:]
+        children = get_children(text)
+        final.append(ParentNode("li", children))
+    return ParentNode("ol", final)
