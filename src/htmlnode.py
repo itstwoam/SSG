@@ -71,28 +71,28 @@ class ParentNode(HTMLNode):
         final += f"</{self.tag}>"
         return final
 
-def text_node_to_html_node(text_node):
-    """
-        This function returns an html leaf node from the given text node.
-
-        Parameters:
-        text_node: a text_node to convert
-
-        Returns:
-        LeafNode
-    """
-    match text_node.text_type:
-        case TextType.TEXT:
-            return LeafNode(text_node.text, None)
-        case TextType.BOLD:
-            return LeafNode(text_node.text, "b")
-        case TextType.ITALIC:
-            return LeafNode(text_node.text, "i")
-        case TextType.CODE:
-            return LeafNode(text_node.text, "code")
-        case TextType.LINK:
-            return LeafNode(text_node.text, "a", text_node.props)
-        case TextType.IMAGE:
-            return LeafNode("", "img", text_node.props)
-        case _:
-            raise Exception("unkown text type")
+# def text_node_to_html_node(text_node):
+#     """
+#         This function returns an html leaf node from the given text node.
+#
+#         Parameters:
+#         text_node: a text_node to convert
+#
+#         Returns:
+#         LeafNode
+#     """
+#     match text_node.text_type:
+#         case TextType.TEXT:
+#             return LeafNode(text_node.text, None)
+#         case TextType.BOLD:
+#             return LeafNode(text_node.text, "b")
+#         case TextType.ITALIC:
+#             return LeafNode(text_node.text, "i")
+#         case TextType.CODE:
+#             return LeafNode(text_node.text, "code")
+#         case TextType.LINK:
+#             return LeafNode(text_node.text, "a", text_node.props)
+#         case TextType.IMAGE:
+#             return LeafNode("", "img", text_node.props)
+#         case _:
+#             raise Exception("unkown text type")
