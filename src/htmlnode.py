@@ -1,3 +1,4 @@
+import inspect
 from textnode import TextType
 
 class HTMLNode:
@@ -8,6 +9,7 @@ class HTMLNode:
         self.props = props
         
     def to_html(self):
+        print("I'm not implemented yet!")
         raise NotImplementedError
 
     def props_to_html(self):
@@ -63,10 +65,11 @@ class ParentNode(HTMLNode):
             raise ValueError("ParentNode must have at least one child!")
         else:
             final = f"<{self.tag}>"
-            for n in self.children:
-                final += n.to_html()
-            final += f"</{self.tag}>"
-            return final
+        for n in self.children:
+            #print(n.value,"\n")
+            final += n.to_html()
+        final += f"</{self.tag}>"
+        return final
 
 def text_node_to_html_node(text_node):
     """

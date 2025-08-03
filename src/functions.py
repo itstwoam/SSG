@@ -1,5 +1,5 @@
 from textnode import TextType, TextNode
-from htmlnode import LeafNode, text_node_to_html_node
+from htmlnode import ParentNode, LeafNode, text_node_to_html_node
 from enums import TextType, BlockType
 import re
 
@@ -326,27 +326,22 @@ def markdown_to_html_node(markdown):
         b_type = block_to_block_type(b)
         # Call function to deal with the type
         match b_type:
-            case: BlockType.PARAGRAPH:
+            case BlockType.PARAGRAPH:
                 final.append(paragraph_from_block(b))
-            case: BlockType.CODE:
+            case BlockType.CODE:
                 final.append(code_from_block(b))
-            case: BlockType.QUOTE:
+            case BlockType.QUOTE:
                 final.append(quote_from_block(b))
-            case: BlockType.HEADING:
+            case BlockType.HEADING:
                 final.append(heading_from_block(b))
-            case: BlockType.ORDERED:
-                final.append(list_from_block(b))
-            case: BlockType.UNORDERED:
+            case BlockType.ORDERED:
                 final.append(olist_from_block(b))
-            case: _:
+            case BlockType.UNORDERED:
+                final.append(list_from_block(b))
+            case _:
                 raise Exception("Invalid block type in markdown_to_html_node")
         # Return an htmlnode based on block type
     return ParentNode("div", final, None)
-        # Add this htmlnode to final
-        current = text_to_textnodes(b)
-    #print(block)
-    #print("Returning from block_to_bloc_type")
-    return final
 
 def get_children(text):
     final = []
@@ -357,14 +352,15 @@ def get_children(text):
     return final
 
 def paragraph_from_block(block):
-    lines = block.split("\n")
+    #lines = block.split("\n")
+    lines = [line.strip() for line in block.split("\n")]
     new_lines = " ".join(lines)
     children = get_children(new_lines)
     return ParentNode("p", children)
 
 
 def heading_from_block(block):
-   level = 0
+    level = 0
     for l in block:
         if l == "#":
             level += 1
