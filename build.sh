@@ -1,1 +1,1 @@
-python3 src/main.py "/itstowam/"
+python3 src/main.py "/itstwoam/"
