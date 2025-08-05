@@ -16,8 +16,8 @@ class HTMLNode:
         if not self.props:
             return ""
         final = ""
-        for k,v in self.props.items():
-            final += f'{k}="{v}"'
+        for prop in self.props:
+            final += f' {prop}="{self.props[prop]}"'
         return final
 
     def __repr__(self):
@@ -36,11 +36,13 @@ class LeafNode(HTMLNode):
         super().__init__(tag, value, None, props)
 
     def to_html(self):
-        if not self.value:
+        #print(f"HTMLNode of type: {type(self)} with a tag of {self.tag}, {len(self.children)} children nodes and {self.props} props")
+        #if not self.value:
+        if self.value == None:
             raise ValueError("LeafNode must have a value!")
         if not self.tag:
             return str(self.value)
-        return f'<{self.tag}>{self.value}</{self.tag}>'
+        return f'<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>'
 
 class ParentNode(HTMLNode):
     """
@@ -59,6 +61,7 @@ class ParentNode(HTMLNode):
 
     
     def to_html(self):
+        #print(f"HTMLNode of type: {type(self)} with a tag of {self.tag}, {len(self.children)} children nodes and {self.props} props")
         if not self.tag:
             raise ValueError("ParentNode must have a tag!")
         if not self.children:
@@ -71,28 +74,3 @@ class ParentNode(HTMLNode):
         final += f"</{self.tag}>"
         return final
 
-# def text_node_to_html_node(text_node):
-#     """
-#         This function returns an html leaf node from the given text node.
-#
-#         Parameters:
-#         text_node: a text_node to convert
-#
-#         Returns:
-#         LeafNode
-#     """
-#     match text_node.text_type:
-#         case TextType.TEXT:
-#             return LeafNode(text_node.text, None)
-#         case TextType.BOLD:
-#             return LeafNode(text_node.text, "b")
-#         case TextType.ITALIC:
-#             return LeafNode(text_node.text, "i")
-#         case TextType.CODE:
-#             return LeafNode(text_node.text, "code")
-#         case TextType.LINK:
-#             return LeafNode(text_node.text, "a", text_node.props)
-#         case TextType.IMAGE:
-#             return LeafNode("", "img", text_node.props)
-#         case _:
-#             raise Exception("unkown text type")

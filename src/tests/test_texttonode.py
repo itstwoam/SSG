@@ -41,9 +41,10 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
         self.assertEqual(html_node.to_html(), "<a>Click me</a>")
 
     def test_image_node_raises(self):
-        node = TextNode("", TextType.IMAGE, url="image.png")
+        node = TextNode(None, TextType.IMAGE, url="image.png")
         node.props = {"src": "image.png", "alt": "alt text"}
         with self.assertRaises(ValueError):
+            LeafNode(None, "img", {"src": "image.png", "alt": "alt text"}).to_html()
             text_node_to_html_node(node).to_html()
         
     def test_unknown_type_raises(self):

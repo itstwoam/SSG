@@ -1,9 +1,21 @@
 import unittest
-from functions import markdown_to_html_node
+from functions import markdown_to_html_node, resolve_path
 from htmlnode import ParentNode
+import os
 
-string = "How will \n\n split?"
-print(string.split("\n"))
+source = "../"
+source = resolve_path(source)
+dest = "../content/index.md"
+dest = resolve_path(dest)
+template = "../template.html"
+template = resolve_path(template)
+
+entries = os.listdir(source)
+print(entries)
+#with open(source) as file:
+#    sdata = file.read()
+
+
 #class TestMarkdownInlineCombinations(unittest.TestCase):
 
     # def test_multiple_inline_formats(self):

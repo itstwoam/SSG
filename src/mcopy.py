@@ -32,9 +32,6 @@ def copy_directory(source, dest):
 
 def wipe_directory(directory):
     #Get a list of all files in the directory
-    if "playground/" not in directory:
-        print("Guardrails are off, I'm out")
-        sys.exit(1)
     if not os.path.exists(directory):
         return True
     entries = os.listdir(os.path.abspath(directory))

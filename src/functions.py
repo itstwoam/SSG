@@ -1,3 +1,4 @@
+import os
 from textnode import TextType, TextNode
 from htmlnode import ParentNode, LeafNode#, text_node_to_html_node
 from enums import TextType, BlockType
@@ -14,9 +15,9 @@ def text_node_to_html_node(text_node):
         case TextType.CODE:
             return LeafNode(text_node.text, "code", None)
         case TextType.LINK:
-            return LeafNode(text_node.text, "a", text_node.props)
+            return LeafNode(text_node.text, "a", {"href": text_node.url})
         case TextType.IMAGE:
-            return LeafNode("", "img", text_node.props)
+            return LeafNode("", "img", {"src": text_node.url, "alt": text_node.text})
         case _:
             raise Exception("unkown text type")
             
@@ -154,9 +155,10 @@ def split_nodes_worker(tt, text):
 
         parts = work.split(delimiter, 1)
 
-        if len(parts) > 0:
-            if len(parts[0]) > 0:
-                result.append(TextNode(parts[0], TextType.TEXT))
+        #if tt == TextType.IMAGE:
+        #    print(parts)
+        if len(parts[0]) > 0:
+            result.append(TextNode(parts[0], TextType.TEXT))
 
         node = TextNode(alt, tt, link)
         result.append(node)
@@ -273,34 +275,6 @@ def block_to_block_type(block):
         #print("Throwing exception in block_to_block_type")
         return BlockType.PARAGRAPH
 
-def block_to_html_node(block, block_type):
-    """
-    Converts a block of markdown to an htmlnode
-
-    Parameters:
-    block (string) Block of text to convert to htmlnode
-    block_type (BlockType) defines the block type
-
-    Returns:
-    htmlnode consisting of the nodes required for the block.
-    """
-    final = []
-    match block_type:
-        case BlockType.PARAGRAPH:
-            tag = "p"
-            #create the children nodes first
-            children = text_to_textnodes(block)
-            #create the parent node
-    #def __init__(self, tag, children, props=None):
-            pnode = ParentNode("p", children)
-
-
-
-
-
-
-
-
 
 
 def markdown_to_html_node(markdown):
@@ -407,3 +381,72 @@ def olist_from_block(block):
         children = get_children(text)
         final.append(ParentNode("li", children))
     return ParentNode("ol", final)
+
+
+def extract_title(markdown):
+    #convert to blocks
+    blocks =  markdown_to_block(markdown)
+    header = ""
+    for block in blocks:
+        block= block.strip()
+        if block.find("# ") == 0:
+            header = block[2:].split("\n",1)[0]
+            header = header.strip()
+            break
+    if header == "":
+        raise Exception("No header found")
+    return header
+
+def resolve_path(relative_path):
+    """
+    Resolves a relative path to an absolute path,
+    anchored at the script's directory.
+    """
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.abspath(os.path.join(base_dir, relative_path))
+
+
+
+def generate_page(source, template, dest):
+    source = resolve_path(source)
+    dest = resolve_path(dest)
+    template = resolve_path(template)
+    print(f"Generating page from {source} to {dest} with the template: {template}")
+    with open(source) as file:
+        sdata = file.read()
+    with open(template) as temp:
+        tdata = temp.read()
+
+    htmlnodes = markdown_to_html_node(sdata)
+    htmlstring = htmlnodes.to_html()
+    title = extract_title(sdata)
+    tdata = tdata.replace("{{ Title }}", title)
+    tdata = tdata.replace("{{ Content }}", htmlstring)
+
+    with open(dest, 'w') as file:
+        file.write(tdata)
+
+    print(f"Wrote html file at: {dest}")
+
+
+
+
+def generate_pages_recursive(source, template, dest):
+    fsource = resolve_path(source)
+    ftemplate = resolve_path(template)
+    fdest = resolve_path(dest)
+    
+    entries = os.listdir(fsource)
+    for entry in entries:
+        full_path = os.path.join(fsource, entry)
+        if os.path.isfile(full_path):
+            if full_path.endswith(".md"):
+                #Also copy from source to dest
+                generate_page(full_path, template, os.path.join(fdest, f'{entry.split(".", 1)[0]}.html'))
+        else:
+            #Create destination directory if it doesn't exist.
+            if not os.path.exists(os.path.join(fdest, entry)):
+                os.mkdir(os.path.join(fdest, entry))
+            #Call generate_pages_recursive()
+            generate_pages_recursive(os.path.join(fsource, entry), template, os.path.join(fdest, entry))
+    return True
