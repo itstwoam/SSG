@@ -407,7 +407,7 @@ def resolve_path(relative_path):
 
 
 
-def generate_page(source, template, dest):
+def generate_page(basepath, source, template, dest):
     source = resolve_path(source)
     dest = resolve_path(dest)
     template = resolve_path(template)
@@ -422,6 +422,8 @@ def generate_page(source, template, dest):
     title = extract_title(sdata)
     tdata = tdata.replace("{{ Title }}", title)
     tdata = tdata.replace("{{ Content }}", htmlstring)
+    tdata = tdata.replace(f'href="/', f'href="{basepath}')
+    tdata = tdata.replace(f'src="/', f'src="{basepath}')
 
     with open(dest, 'w') as file:
         file.write(tdata)
@@ -431,7 +433,7 @@ def generate_page(source, template, dest):
 
 
 
-def generate_pages_recursive(source, template, dest):
+def generate_pages_recursive(basepath, source, template, dest):
     fsource = resolve_path(source)
     ftemplate = resolve_path(template)
     fdest = resolve_path(dest)
@@ -442,11 +444,11 @@ def generate_pages_recursive(source, template, dest):
         if os.path.isfile(full_path):
             if full_path.endswith(".md"):
                 #Also copy from source to dest
-                generate_page(full_path, template, os.path.join(fdest, f'{entry.split(".", 1)[0]}.html'))
+                generate_page(basepath, full_path, template, os.path.join(fdest, f'{entry.split(".", 1)[0]}.html'))
         else:
             #Create destination directory if it doesn't exist.
             if not os.path.exists(os.path.join(fdest, entry)):
                 os.mkdir(os.path.join(fdest, entry))
             #Call generate_pages_recursive()
-            generate_pages_recursive(os.path.join(fsource, entry), template, os.path.join(fdest, entry))
+            generate_pages_recursive(basepath, os.path.join(fsource, entry), template, os.path.join(fdest, entry))
     return True
